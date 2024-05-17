@@ -49,8 +49,8 @@ async def create_openai_thread(message):
     message_response = open_ai_client.beta.threads.messages.list(thread_id=thread.id)
     messages = message_response.data
     latest_message = messages[0]
-
-    return latest_message, thread.id
+    latest_message_text = latest_message.content[0].text.value
+    return latest_message_text, thread.id
 
 
 
@@ -70,36 +70,36 @@ async def send_to_leadvertex(fio, phone, company='https://ma.nurdeo.pw/PMJbyhNS?
         async with session.get(company, ssl=False) as response:
             utm_term, pixel_value, web_value = parse(response.url)
 
-    url = f"https://call-center1.leadvertex.ru/api/webmaster/v2/addOrder.html?webmasterID={web_value}&token=1234"
-    orderData = {
-        'goods[0][goodID]': 202690,
-        'goods[0][price]': 1200,
-        'goods[0][quantity]': 1,
-        'fio':fio,
-        'phone': phone,
-        'domain':'nur.whatsapp.pw',
-        'externalWebmaster':pixel_value,
-        'utm_term':utm_term,
-        'additional13':'whatsapp-chat-gpt'
-        
-    }
+        url = f"https://call-center1.leadvertex.ru/api/webmaster/v2/addOrder.html?webmasterID={web_value}&token=1234"
+        orderData = {
+            'goods[0][goodID]': 202690,
+            'goods[0][price]': 1200,
+            'goods[0][quantity]': 1,
+            'fio': fio,
+            'phone': phone,
+            'domain': 'nur.whatsapp.pw',
+            'externalWebmaster': pixel_value,
+            'utm_term': utm_term,
+            'additional13': 'whatsapp-chat-gpt'
+        }
 
-    headers = {
-                    'Content-Type': 'application/x-www-form-urlencoded'
-                }
-    
-    async with session.post(url, data=orderData, headers=headers) as resp:
-        if resp.status == 200:
-            print('успешно создали заказ возвращаем')
-        else:
-            print('Не успешно был создан ватсап лид в лидвертексе')
+        headers = {
+            'Content-Type': 'application/x-www-form-urlencoded'
+        }
+
+        async with session.post(url, data=orderData, headers=headers) as resp:
+            if resp.status == 200:
+                print('успешно создали заказ возвращаем')
+            else:
+                print('Не успешно был создан ватсап лид в лидвертексе')
+
 
 
 
 async def openai_thread_send_message(message_text, thread_id):
     max_tokens = 500
 
-    thread_message = await open_ai_client.beta.threads.messages.create(
+    thread_message = open_ai_client.beta.threads.messages.create(
                 thread_id=thread_id,
                 role="user",
                 content=message_text
@@ -114,5 +114,9 @@ async def openai_thread_send_message(message_text, thread_id):
     message_response = open_ai_client.beta.threads.messages.list(thread_id=thread_id)
     messages = message_response.data
     latest_message = messages[0]
+    latest_message_text = latest_message.content[0].text.value
+    
+    return latest_message_text
 
-    return latest_message
+
+    
