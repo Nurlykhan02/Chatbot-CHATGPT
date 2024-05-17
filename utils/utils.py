@@ -3,7 +3,10 @@ from openai import OpenAI
 from config import OPEN_AI_API_KEY, OPEN_AI_ASSISTANT_ID, OPEN_AI_ORGANIZATION, OPEN_AI_PROJECT
 
 
-open_ai_client = OpenAI(api_key=OPEN_AI_API_KEY, organization=OPEN_AI_ORGANIZATION, project=OPEN_AI_PROJECT)
+open_ai_client = OpenAI(
+    api_key=OPEN_AI_API_KEY,
+    organization=OPEN_AI_ORGANIZATION,
+    project=OPEN_AI_PROJECT)
 
 
 async def send_message(said: int, message: str, phone: str):
@@ -23,49 +26,54 @@ async def send_message(said: int, message: str, phone: str):
     async with aiohttp.ClientSession() as session:
         async with session.post(url, json=data, headers=headers) as response:
             if response.status == 200:
-               pass
+                pass
             else:
-                print("Ошибка при отправке сообщения:", response.status, response.text)
+                print(
+                    "Ошибка при отправке сообщения:",
+                    response.status,
+                    response.text)
 
 
 async def create_openai_thread(message):
     max_tokens = 500
 
     thread = open_ai_client.beta.threads.create(
-                messages=[
-                    {
-                        'role': 'user',
+        messages=[
+            {
+                'role': 'user',
                         'content': message
-                    }
-                ]
-            )
-    
-    run = open_ai_client.beta.threads.runs.create(thread_id=thread.id, assistant_id=OPEN_AI_ASSISTANT_ID, max_completion_tokens=max_tokens)
+            }
+        ]
+    )
 
-    while run.status !='completed':
-        run = open_ai_client.beta.threads.runs.retrieve(thread_id=thread.id, run_id=run.id)
+    run = open_ai_client.beta.threads.runs.create(
+        thread_id=thread.id,
+        assistant_id=OPEN_AI_ASSISTANT_ID,
+        max_completion_tokens=max_tokens)
 
+    while run.status != 'completed':
+        run = open_ai_client.beta.threads.runs.retrieve(
+            thread_id=thread.id, run_id=run.id)
 
-    message_response = open_ai_client.beta.threads.messages.list(thread_id=thread.id)
+    message_response = open_ai_client.beta.threads.messages.list(
+        thread_id=thread.id)
     messages = message_response.data
     latest_message = messages[0]
     latest_message_text = latest_message.content[0].text.value
     return latest_message_text, thread.id
 
 
-
-
 def parse(url):
     query_params = url.query
-    
+
     utm_term_value = query_params.get('utm_term')
     pixel_value = query_params.get('pixel')
     web_value = query_params.get('web')
     return utm_term_value, pixel_value, web_value
 
 
-
-async def send_to_leadvertex(fio, phone, company='https://ma.nurdeo.pw/PMJbyhNS?adset_id={{adset.id}}&utm_campaign={{campaign.name}}&utm_source={{site_source_name}}&utm_placement={{placement}}&campaign_id={{campaign.id}}&utm_creative={{ad.name}}&ad_id={{ad.id}}&adset_name={{adset.name}}&web=14&pixel=адалтдиана9610&sub_id_10=2&sub_id_15=1'):
+async def send_to_leadvertex(
+        fio, phone, company='https://ma.nurdeo.pw/PMJbyhNS?adset_id={{adset.id}}&utm_campaign={{campaign.name}}&utm_source={{site_source_name}}&utm_placement={{placement}}&campaign_id={{campaign.id}}&utm_creative={{ad.name}}&ad_id={{ad.id}}&adset_name={{adset.name}}&web=14&pixel=адалтдиана9610&sub_id_10=2&sub_id_15=1'):
     async with aiohttp.ClientSession() as session:
         async with session.get(company, ssl=False) as response:
             utm_term, pixel_value, web_value = parse(response.url)
@@ -94,29 +102,28 @@ async def send_to_leadvertex(fio, phone, company='https://ma.nurdeo.pw/PMJbyhNS?
                 print('Не успешно был создан ватсап лид в лидвертексе')
 
 
-
-
 async def openai_thread_send_message(message_text, thread_id):
     max_tokens = 500
 
     thread_message = open_ai_client.beta.threads.messages.create(
-                thread_id=thread_id,
-                role="user",
-                content=message_text
-                )
-    
-    run = open_ai_client.beta.threads.runs.create(thread_id=thread_id, assistant_id=OPEN_AI_ASSISTANT_ID, max_completion_tokens=max_tokens)
+        thread_id=thread_id,
+        role="user",
+        content=message_text
+    )
 
-    while run.status !='completed':
-        run = open_ai_client.beta.threads.runs.retrieve(thread_id=thread_id, run_id=run.id)
+    run = open_ai_client.beta.threads.runs.create(
+        thread_id=thread_id,
+        assistant_id=OPEN_AI_ASSISTANT_ID,
+        max_completion_tokens=max_tokens)
 
+    while run.status != 'completed':
+        run = open_ai_client.beta.threads.runs.retrieve(
+            thread_id=thread_id, run_id=run.id)
 
-    message_response = open_ai_client.beta.threads.messages.list(thread_id=thread_id)
+    message_response = open_ai_client.beta.threads.messages.list(
+        thread_id=thread_id)
     messages = message_response.data
     latest_message = messages[0]
     latest_message_text = latest_message.content[0].text.value
-    
+
     return latest_message_text
-
-
-    
