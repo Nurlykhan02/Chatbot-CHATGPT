@@ -1,8 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+
 from controller.controller import ChatController
-
-
 
 chatController = ChatController()
 
@@ -15,7 +14,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_origins=["*"]
 )
-
 
 
 app.include_router(chatController.chat, prefix='/v1')
